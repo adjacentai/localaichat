@@ -1,0 +1,13 @@
+# Telegram Bot Dependencies
+aiogram==3.3.0
+aiohttp==3.9.1
+
+# LLM Integration
+requests==2.31.0
+httpx==0.25.2
+
+# Optional: For better async performance
+aiofiles==23.2.0
+
+# Development tools (optional)
+python-dotenv==1.0.0 
