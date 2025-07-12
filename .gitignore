@@ -81,7 +81,6 @@ logs/
 *.temp
 
 # Config files with sensitive data
-config.py
 .env
 
 # LLaMA models (large files)
