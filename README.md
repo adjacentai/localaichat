@@ -1,130 +1,74 @@
-# �� LLaMA Telegram Bot (v2)
+# LocalAiChat
 
-Простой и качественный Telegram бот для работы с локальными LLaMA моделями через llama-cpp-python сервер. Версия 2, с правильной структурой проекта.
+A simple Python-based Telegram bot that uses a locally running Large Language Model (LLM) to answer your questions. It's built with `aiogram` and uses `llama-cpp-python` to run an OpenAI-compatible server out of the box.
 
-## ✨ Возможности
+## Features
 
-- 💬 **Диалог с LLaMA моделью**
-- 🧠 **Контекст диалога** (последние 20 сообщений)
-- 🔄 **Сброс контекста** через команду `/start` и inline-кнопку
-- 🚀 **Асинхронная обработка** на `aiogram 3.x`
-- 🛡️ **Надежная обработка ошибок**
-- 📁 **Правильная структура проекта** с `src/`
+- **Run Locally**: All processing happens on your machine. The internet is only needed for the Telegram Bot API.
+- **Easy to Start**: A `Makefile` helps you set up and run the project with just a few commands.
+- **GGUF Support**: Works with models in the popular GGUF format.
+- **Context-Aware**: Remembers the last few messages in a conversation.
+- **Async Powered**: Built with `asyncio` for better performance.
+- **GPU Acceleration**: Optional support for NVIDIA (CUDA) and Apple Silicon (Metal) GPUs.
 
-## 🚀 Быстрый старт
+## How to Run
 
-### 1. Установка
+### 1. Clone the Repository
 
 ```bash
-# Клонируем репозиторий
-git clone <your-repo-url>
+git clone https://github.com/your-username/LocalAiChat.git
 cd LocalAiChat
-
-# Создаем виртуальное окружение и активируем его
-python3 -m venv venv
-source venv/bin/activate 
-
-# Устанавливаем зависимости
-pip install -r requirements.txt
 ```
 
-### 2. Настройка
+### 2. Set Up Environment and Install Dependencies
 
-1.  Получите токен бота у [@BotFather](https://t.me/BotFather) в Telegram.
-2.  Откройте `config_example.py` и вставьте ваш токен в переменную `BOT_TOKEN`.
-
-### 3. Запуск LLaMA сервера
-
-Вам нужен запущенный сервер `llama-cpp-python`.
-[Инструкции по установке](https://github.com/abetlen/llama-cpp-python?tab=readme-ov-file#web-server)
-
-**Пример команды для запуска сервера:**
-```bash
-python -m llama_cpp.server \
-  --model path/to/your/model.gguf \
-  --host 0.0.0.0 \
-  --port 8080
-```
-
-### 4. Тестирование
-
-Перед запуском проверьте, что все настроено корректно.
+Just run this command:
 
 ```bash
-python test_bot.py
+make setup
 ```
-Этот скрипт проверит токен, доступность LLaMA сервера и внутреннюю логику.
 
-### 5. Запуск бота
+It will create a virtual environment in the `.venv` folder and install all the required libraries from `requirements.txt`.
 
-Используйте флаг `-m` для запуска бота как модуля из корневой папки проекта.
+### 3. Configure Environment Variables
+
+Copy the example file to create your own configuration:
 
 ```bash
-python -m src.bot
+cp env.example .env
 ```
 
-## 📁 Структура проекта
+Now, open the `.env` file in a text editor and fill in the following:
 
+- `BOT_TOKEN`: Your Telegram bot token. You can get one from [@BotFather](https://t.me/BotFather).
+- `MODEL_PATH`: The path to your model file.
+
+### 4. Download a Model
+
+This project needs a model in the `.gguf` format. You can download a suitable model from [Hugging Face](https://huggingface.co/models?search=gguf).
+
+We recommend using models designed for chat or instructions, like [Hermes-2-Pro-Llama-3-8B-GGUF](https://huggingface.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF).
+
+After downloading the model:
+
+1.  Create a `models` folder in the project's root directory.
+2.  Place the model file (e.g., `Hermes-2-Pro-Llama-3-8B-Q4_K_M.gguf`) inside the `models` folder.
+3.  Make sure the `MODEL_PATH` in your `.env` file is correct (e.g., `models/your_model_name.gguf`).
+
+### 5. Run the Project
+
+```bash
+make run
 ```
-LocalAiChat/
-├── src/                  # Основной исходный код
-│   ├── __init__.py       # Делает src пакетом
-│   ├── bot.py            # Логика Telegram бота (хэндлеры)
-│   ├── llama_client.py   # Клиент для LLaMA API
-│   └── context_manager.py# Менеджер контекста диалогов
-├── venv/                 # Виртуальное окружение (в .gitignore)
-├── config_example.py     # Файл конфигурации
-├── test_bot.py           # Скрипт для тестирования
-├── requirements.txt      # Зависимости Python
-├── README.md             # Эта документация
-└── LICENSE               # Лицензия MIT
-```
 
----
+This command starts both the AI server and the Telegram bot. You can now open a chat with your bot in Telegram and start talking!
 
-## 🧐 Ответы на ваши вопросы
+## GPU Acceleration (Optional)
 
-Теперь давайте разберем логику и обработку ошибок.
+If you have a supported GPU, you can make the model run faster.
 
-### 1. Как работает логика запуска ИИ модели?
+- **For NVIDIA (CUDA)**:
+  Uncomment the line `CMAKE_ARGS="-DGGML_CUDA=on"` in the `Makefile` and run `make setup` again. You need to have the NVIDIA CUDA Toolkit installed.
 
-Наш бот **не запускает** ИИ модель напрямую. Он работает как **клиент** для уже запущенного сервера `llama-cpp-python`.
-
--   **`llama_client.py`**: Этот модуль отвечает за общение с сервером.
--   **Метод `send_message`**:
-    1.  Формирует `prompt` (текст-подсказку) для модели, включая историю диалога.
-    2.  Делает обычный HTTP POST-запрос на эндпоинт `/completion` вашего LLaMA сервера.
-    3.  Отправляет `prompt` и параметры (температуру, стоп-токены) в формате JSON.
-    4.  Ждет JSON-ответ от сервера, извлекает из него текст и возвращает его боту.
-
-**🐍 Чему мы учимся:** Разделение ответственности. Бот отвечает за интерфейс с пользователем в Telegram, а отдельный сервер — за тяжелые вычисления с нейросетью. Это стандартная архитектура для подобных систем.
-
-### 2. Что будет, если сервер не поднимется?
-
-Мы предусмотрели это в нескольких местах:
-
-1.  **При запуске бота (`src/bot.py`)**:
-    -   Перед началом работы мы вызываем `llama_client.check_server_health()`.
-    -   Этот метод делает простой GET-запрос к эндпоинту `/health` LLaMA-сервера.
-    -   Если сервер не отвечает, в консоли появится предупреждение: `⚠️ LLaMA server is not available.` Бот продолжит работать, но не сможет отвечать на сообщения.
-
-2.  **Во время диалога (`src/llama_client.py`)**:
-    -   Весь код отправки запроса в методе `send_message` обернут в `try...except`.
-    -   **Если сервер выключен**: сработает `except requests.exceptions.ConnectionError`. В консоль выведется четкая ошибка "Не удается подключиться к LLaMA серверу". Метод вернет `None`.
-    -   **Если бот получил `None`**: он отправит пользователю сообщение: "Извините, не могу сейчас ответить. Проблема на стороне ИИ-модели."
-
-### 3. Что будет, если модели нет по указанному пути?
-
-Это ошибка на стороне **LLaMA сервера**. Когда вы запускаете `python -m llama_cpp.server --model /path/to/model`, и модель не найдена, произойдет одно из двух:
-
--   **Сервер вообще не запустится:** Он сразу выдаст ошибку в консоль и завершит работу. Для нашего бота это будет выглядеть так, будто сервер просто выключен (см. пункт 2).
--   **Сервер запустится, но будет в "больном" состоянии:** Эндпоинт `/health` может вернуть ошибку. Наш `check_server_health()` это обнаружит. Любой запрос к `/completion` также вернет ошибку (например, `HTTP 500 Internal Server Error`).
-
-Наш `llama_client` обработает и это:
--   `if response.status_code == 200:` — эта проверка не пройдет.
--   Мы выведем в лог `❌ Ошибка LLaMA сервера: 500 - Internal Server Error` (или другой код).
--   Метод вернет `None`, и пользователь получит вежливое сообщение о проблеме.
-
-**Итог:** Ваш бот спроектирован так, чтобы быть устойчивым к проблемам с LLaMA сервером. Он не "упадет", а сообщит о проблеме и продолжит работать.
-
-Надеюсь, теперь стало понятнее! Мы не только исправили структуру, но и разобрали, как обеспечивается надежность нашего приложения. 
+- **For Apple Silicon (Metal)**:
+  Metal support is usually enabled by default. If it's not working, uncomment `CMAKE_ARGS="-DLLAMA_METAL=on"` in the `Makefile` and run `make setup` again to reinstall dependencies.

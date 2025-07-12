@@ -84,7 +84,7 @@ logs/
 config.py
 .env
 
-# LLaMA models (обычно большие файлы)
+# LLaMA models (large files)
 *.gguf
 *.bin
 models/
