@@ -86,7 +86,6 @@ logs/
 # LLaMA models (large files)
 *.gguf
 *.bin
-models/
 
 # Bot specific
 bot_data/
